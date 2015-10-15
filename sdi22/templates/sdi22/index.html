@@ -33,15 +33,15 @@
             context.fill();
 
             if (x >= 500 - r) {
-                dx = -1;
+                dx = -1.3 - Math.random();
             } else if (x <= r){
-                dx = 1;
+                dx = 1.3 + Math.random();
             }
 
             if (y >= 400 - r) {
-                dy = -1;
+                dy = -1.3 - Math.random();
             } else if (y <= r){
-                dy = 1;
+                dy = 1.3 + Math.random();
             }
 
             x+=dx;
