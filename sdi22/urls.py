@@ -22,5 +22,5 @@ urlpatterns = [
     url('^$', views.index, name="index"),
     url('^notes$', views.notes, name="notes"),
     url('^notes/(?P<note_id>[0-9]+)$', views.note_description, name="note_description"),
-    url('^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root'}),
+    url('^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
 ]
