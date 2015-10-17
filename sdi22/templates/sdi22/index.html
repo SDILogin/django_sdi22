@@ -4,48 +4,97 @@
 
 {% block content %} 
     <center> 
-        <canvas id="canvas" width="500" height="400" style="border:1px solid blue;"> 
+        <canvas id="canvas" width='1100' height='500' style="border:1px solid white;"> 
             |--O_o--| 
         </canvas>
     </center>
-    
+
     <script>
         var canvas  = document.getElementById("canvas");
         var context = canvas.getContext('2d');
-        var x = 10;
-        var y = 100;  
+
         var r = 10;
-        var dx = 1;
-        var dy = 1;
+        var w = canvas.width;
+        var h = canvas.height;
+        var maxDistToCenter = Math.sqrt(w*w + h*h) / 2.0;
+        
+        var N = 10; 
+        var circles = [];
+
+        function intToPx(i) {
+            return i.toString() + "px";
+        }
 
         function init() {
-            setInterval(draw,10);
+            canvas.style.width = intToPx(w);
+            canvas.style.height = intToPx(h);
+
+            for (var i=0; i<N; ++i) {
+                circles.push(new Circle(Math.random()*w, Math.random()*h, Math.random()*10, Math.random()*10));    
+            }
+
+            setInterval(draw,30);
+        }
+        
+        function Circle(x, y, dx, dy) {
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+
+            this.move = function() {
+                if (this.x >= w - r) {
+                    this.dx = -1.3 - Math.random();
+                } else if (this.x <= r){
+                    this.dx = 1.3 + Math.random();
+                }
+
+                if (this.y >= h - r) {
+                    this.dy = -1.3 - Math.random();
+                } else if (this.y <= r){
+                    this.dy = 1.3 + Math.random();
+                }
+
+                this.x += this.dx;
+                this.y += this.dy;
+            }
+
+            this.getDistToCenterInPercents = function() {
+                return distToCenter(this.x, this.y, w/2, h/2) / maxDistToCenter;   
+            }
+
+            function distToCenter(x, y, cx, cy) {
+                var dx = x - cx;
+                var dy = y - cy;
+                return Math.sqrt(dx*dx + dy*dy);
+            }
+
+        }
+
+        function colorFromBase(base) {
+            var intColor = Math.floor(255 * base);
+            var hexColor = intColor.toString(16);
+            return "#" + hexColor + hexColor + hexColor;
         }
 
         function draw() {
-            context.clearRect(0,0, 500,400);
+            context.clearRect(0,0, w,h);
 
             context.beginPath();
-                context.fillStyle="#0000ff";
-                context.arc(x,y,r,0,Math.PI*2,true); 
+                for (var i=0; i<N; ++i) {
+                    var circle = circles[i];
+                    context.fillStyle = colorFromBase(circle.getDistToCenterInPercents());
+                    context.arc(circle.x, circle.y, r, 0, Math.PI*2, true); 
+                };
             context.closePath();
 
             context.fill();
 
-            if (x >= 500 - r) {
-                dx = -1.3 - Math.random();
-            } else if (x <= r){
-                dx = 1.3 + Math.random();
-            }
+            for (var i=0; i<N; ++i) {
+                circles[i].move();
+            };
 
-            if (y >= 400 - r) {
-                dy = -1.3 - Math.random();
-            } else if (y <= r){
-                dy = 1.3 + Math.random();
-            }
-
-            x+=dx;
-            y+=dy;
         }
     </script>
+    
 {% endblock %}
