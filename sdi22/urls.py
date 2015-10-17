@@ -19,5 +19,7 @@ from sdi22 import views
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url('^$', views.index, name="index")
+    url('^$', views.index, name="index"),
+    url('^notes$', views.notes, name="notes"),
+    url('^notes/(?P<note_id>[0-9]+)$', views.note_description, name="note_description"),
 ]

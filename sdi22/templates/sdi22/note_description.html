@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %} SDI-22 {% endblock %}
+
+{% block content %} 
+    {% if note %}
+        <center> 
+            <h2> <font color="white"> {{ note.title }} </font> </h2>
+            <font color="white"> <p> {{ note.description }} </p> </font> 
+        </center>
+    {% else %}
+        <h2> <font color="white"> Not found </font> </h2>
+    {% endif %}
+{% endblock %}
