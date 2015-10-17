@@ -1,19 +1,26 @@
+{% load staticfiles %}  
 <html>
     <head>
         <title>{% block title %}{% endblock %} </title>
+        <link rel="stylesheet" type="text/css" href="{% static 'sdi22/base_style.css' %}"/>
     </head>
-    <body onLoad="init();" style="background-color: black;">
-       <center>
-            <H1>  <font color="white">Selivanov Dmitry (AndroidDev)</font>   </H1> 
-        </center>   
-
-        {% block content %}{% endblock %}
-
-        <footer>
+    <body onLoad="init();">
+        <div class="wrapper">
             <center>
-                <a href="http://www.vk.com/id86410922">VK</a>
-                <a href="https://plus.google.com/u/0/100775358445940620521/posts"> G+ </a>
-            </center>
-        </footer>
+                <H1>  <font color="white">Selivanov Dmitry (AndroidDev)</font>   </H1> 
+            </center>   
+            
+            <div class="content">
+                {% block content %}
+                {% endblock %}
+            </div>
+
+            <div class="footer">
+                <center>
+                    <a href="http://www.vk.com/id86410922">VK</a>
+                    <a href="https://plus.google.com/u/0/100775358445940620521/posts"> G+ </a>
+                </center>
+            </div>
+        </div>
     </body>
 </html>
