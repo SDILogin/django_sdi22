@@ -15,12 +15,12 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from sdi22 import views
+from sdi22 import views, settings
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url('^$', views.index, name="index"),
     url('^notes$', views.notes, name="notes"),
     url('^notes/(?P<note_id>[0-9]+)$', views.note_description, name="note_description"),
-    url('^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
+    url('^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root'}),
 ]
