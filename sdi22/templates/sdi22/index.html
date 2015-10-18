@@ -1,13 +1,11 @@
-{% extends "base.html" %}
+{% extends "base.html" %}         
 
 {% block title %} SDI-22 {% endblock %}
 
 {% block content %} 
-    <center> 
-        <canvas id="canvas" width='1100' height='500' style="border:0px solid white;"> 
-            |--O_o--| 
-        </canvas>
-    </center>
+    <canvas id="canvas" style="border:0px solid white;"> 
+        |--O_o--| 
+    </canvas>
 
     <script>
         var canvas  = document.getElementById("canvas");
@@ -17,46 +15,98 @@
         var w = canvas.width;
         var h = canvas.height;
         var maxDistToCenter = Math.sqrt(w*w + h*h) / 2.0;
-        
-        var N = 10; 
+
+        var maxSpeed = 5;
+
+        var N = 45; 
         var circles = [];
 
         function intToPx(i) {
             return i.toString() + "px";
         }
 
-        function init() {
-            canvas.style.width = intToPx(w);
-            canvas.style.height = intToPx(h);
+        function magnit(x, y) {
+            for (var i=0; i<N; ++i) {
+                circles[i].dx = (x - circles[i].x)/w * maxSpeed * Math.random();
+                circles[i].dy = (y - circles[i].y)/h * maxSpeed * Math.random();
+            }    
+        }
+
+        function distCircleDot(c, x, y) {
+            var dx = c.x - x;
+            var dy = c.y - y;
+            return Math.sqrt(dx*dx + dy*dy);
+        }
+
+        function boom(x, y) {
+            var maxDist = Math.sqrt(w*w + h*h);
+            var boomCof = 12 * maxSpeed;
+            for (var i=0; i<N; ++i) {
+                var distCof = (1 - distCircleDot(circles[i], x, y)/maxDist);
+                console.log(""+circles[i].x + " " + circles[i].y + " " + distCof);
+                circles[i].dx = -(x - circles[i].x)/w * boomCof * distCof * distCof;
+                circles[i].dy = -(y - circles[i].y)/h * boomCof * distCof * distCof;
+            }    
+        }
+
+        function onCanvasClick(event) {
+            var x = event.pageX;
+            var y = event.pageY;
+            //magnit(x, y);
+            boom(x, y);
+        }
+
+        function onRightMouseClick(event) {
+            var x = event.pageX;
+            var y = event.pageY;
+            boom(x, y);
+            return true;
+        }
+
+        function init() {                                     
+            canvas.width = w = window.innerWidth - 30;
+            canvas.height = h = window.innerHeight - 130;
+
+            canvas.addEventListener('click', onCanvasClick, false);
+            canvas.oncontextmenu = onRightMouseClick;
 
             for (var i=0; i<N; ++i) {
-                circles.push(new Circle(Math.random()*w, Math.random()*h, Math.random()*10, Math.random()*10));    
+                circles.push(new Circle(Math.random()*w, Math.random()*h, 5 + r * Math.random(), Math.random() * maxSpeed, Math.random() * maxSpeed));    
             }
 
             setInterval(draw,30);
         }
         
-        function Circle(x, y, dx, dy) {
+        function Circle(x, y, r, dx, dy) {
             this.x = x;
             this.y = y;
             this.dx = dx;
             this.dy = dy;
+            this.r = r;
 
             this.move = function() {
                 if (this.x >= w - r) {
-                    this.dx = -1.3 - Math.random();
+                    this.dx = -maxSpeed - Math.random();
                 } else if (this.x <= r){
-                    this.dx = 1.3 + Math.random();
+                    this.dx = maxSpeed + Math.random();
                 }
 
                 if (this.y >= h - r) {
-                    this.dy = -1.3 - Math.random();
+                    this.dy = -maxSpeed - Math.random();
                 } else if (this.y <= r){
-                    this.dy = 1.3 + Math.random();
+                    this.dy = maxSpeed + Math.random();
                 }
 
                 this.x += this.dx;
                 this.y += this.dy;
+            }
+
+            this.goInAnotherDirectionX = function() {
+                this.dx *= -1;                
+            }
+
+            this.goInAnotherDirectionY = function() {
+                this.dy *=-1;
             }
 
             this.getDistToCenterInPercents = function() {
@@ -77,23 +127,97 @@
             return "#" + hexColor + hexColor + hexColor;
         }
 
+        function isNeedChangeDirection(c1, c2) {
+            var dx = c1.x - c2.x;
+            var dy = c1.y - c2.y;
+            return Math.sqrt(dx*dx + dy*dy) <= c1.r + c2.r;    
+        }
+
+        function collisionRate(c1, c2) {
+            var dx = c1.x - c2.x;
+            var dy = c1.y - c2.y;
+            return c1.r + c2.r - Math.sqrt(dx*dx + dy*dy);    
+        }
+
+        function getCollisionX(c1, c2) {
+            return (c1.x * c2.r + c2.x*c1.r) / (c1.r + c2.r);
+        }
+
+        function getCollisionY(c1, c2) {
+            return (c1.y * c2.r + c2.y*c1.r) / (c1.r + c2.r);
+        }
+
+        function correctSpeed(c1) {
+            if (c1.dx > maxSpeed) {
+                c1.dx = maxSpeed;
+            } else if (c1.dx < -maxSpeed) {
+                c1.dx = -maxSpeed;
+            }
+
+            if (c1.dy > maxSpeed) {
+                c1.dy = maxSpeed;
+            } else if (c1.dy < -maxSpeed) {
+                c1.dy = -maxSpeed;
+            }
+        }
+
+        function correctPosition(c1, cx, cy, cr) {
+            var l = Math.sqrt((c1.x - cx) * (c1.x - cx) + (c1.y - cy) * (c1.y - cy));
+            var dx = (c1.x - cx) / l;
+            var dy = (c1.y - cy) / l;
+            c1.x += dx * cr;
+            c1.y += dy * cr;
+        }
+
+        function changeDirectionIfNeeded(c1, c2) {
+            if (isNeedChangeDirection(c1,c2)) {
+                var cx = getCollisionX(c1, c2);
+                var cy = getCollisionY(c1, c2);
+                var c1dx = c1.dx * Math.sin((cx - c1.x) / c1.r);
+                var c2dx = c2.dx * -Math.sin((cx - c2.x) / c2.r);
+                var c1dy = c1.dy * Math.cos((cy - c1.y) / c1.r);
+                var c2dy = c2.dy * Math.cos((cy - c2.y) / c2.r); 
+
+                c1.dx += c2dx ;
+                c2.dx += c1dx ;
+
+                c1.dy -= c2dy ;
+                c2.dy -= c1dy ;
+
+                correctPosition(c1, cx, cy, collisionRate(c1, c2));
+
+                correctSpeed(c1);
+                correctSpeed(c2);
+            }
+        }
+
+        function changeDirections() {
+            for (var i=0; i<N-1; ++i) {
+                var circle1 = circles[i];
+                for (var j=i+1; j<N; ++j) {
+                    var circle2 = circles[j];
+                    changeDirectionIfNeeded(circle1, circle2);
+                }
+            }
+        }
+
         function draw() {
             context.clearRect(0,0, w,h);
 
-            context.beginPath();
-                for (var i=0; i<N; ++i) {
-                    var circle = circles[i];
-                    context.fillStyle = colorFromBase(circle.getDistToCenterInPercents());
-                    context.arc(circle.x, circle.y, r, 0, Math.PI*2, true); 
-                };
-            context.closePath();
-
-            context.fill();
+            for (var i=0; i<N; ++i) {
+                var circle = circles[i];
+                context.fillStyle = colorFromBase(circle.getDistToCenterInPercents());
+                context.beginPath();
+                context.arc(circle.x, circle.y, circle.r, 0, Math.PI*2, true); 
+                context.closePath();
+                context.fill();
+            };
 
             for (var i=0; i<N; ++i) {
                 circles[i].move();
             };
 
+            changeDirections();
         }
     </script>
     
